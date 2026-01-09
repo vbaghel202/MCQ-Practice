@@ -2,80 +2,147 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MCQ Exam System</title>
+<title>MCQ Exam System PRO PLUS - FINAL</title>
+
+<!-- ZIP LIBRARY -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
 body{font-family:Arial;background:linear-gradient(135deg,#e0f2fe,#f8fafc);margin:0}
-.header{background:#0f172a;color:#fff;padding:14px;text-align:center;font-size:20px}
+.header{background:#0f172a;color:#fff;padding:12px;text-align:center;font-size:18px}
 
 .center{
- max-width:1200px;margin:25px auto;background:#fff;padding:20px;
- border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.12)
+ max-width:1000px;
+ margin:20px auto;
+ background:#fff;
+ padding:16px;
+ border-radius:14px;
+ box-shadow:0 10px 30px rgba(0,0,0,.12)
 }
 
 button{
- padding:10px 18px;font-size:14px;border:none;border-radius:8px;
+ padding:8px 14px;font-size:13px;border:none;border-radius:8px;
  cursor:pointer;margin:4px
 }
 .btn-main{background:#2563eb;color:#fff}
 .btn-sec{background:#475569;color:#fff}
 .btn-del{background:#dc2626;color:#fff}
 
-.layout{display:grid;grid-template-columns:1fr 240px;gap:20px}
+.layout{
+ display:grid;
+ grid-template-columns:1fr 220px;
+ gap:15px
+}
 
 .q-card{
- background:#f8fafc;padding:20px;border-radius:12px;border:1px solid #cbd5e1
+ background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #cbd5e1
 }
-.question{font-size:18px;font-weight:bold;margin-bottom:15px}
+.question{font-size:16px;font-weight:bold;margin-bottom:10px;text-align:left}
 
+/* ===== PERFECT OPTION STYLE (NO BUG) ===== */
 .option{
- border:1px solid #cbd5e1;padding:12px;border-radius:8px;
- margin-bottom:10px;cursor:pointer;background:#fff
+ border:1px solid #cbd5e1;
+ padding:8px 10px;
+ border-radius:8px;
+ margin-bottom:8px;
+ cursor:pointer;
+ background:#fff;
+ font-size:14px;
+ text-align:left;
 }
+.option label{
+ display:grid;
+ grid-template-columns:22px 1fr;
+ column-gap:8px;
+ align-items:flex-start;
+ cursor:pointer;
+}
+.option input{margin-top:3px}
+.option span{text-align:left}
 .option:hover{background:#f1f5f9}
 .option.correct{background:#bbf7d0}
 .option.wrong{background:#fecaca}
 
-.palette{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+/* ===== PALETTE SCROLL ===== */
+.palette{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:6px;
+ max-height:400px;
+ overflow-y:auto;
+ padding-right:5px;
+}
 .palette div{
- padding:10px;text-align:center;border-radius:6px;
- background:#e5e7eb;font-weight:bold;cursor:pointer
+ padding:8px;text-align:center;border-radius:6px;
+ background:#e5e7eb;font-weight:bold;cursor:pointer;font-size:13px
 }
 .palette .green{background:#86efac}
 .palette .red{background:#fca5a5}
 .palette .grey{background:#e5e7eb}
 
-.btn-row{display:flex;justify-content:space-between;margin-top:15px}
+.btn-row{display:flex;justify-content:space-between;margin-top:10px}
+
+textarea{width:100%;height:220px}
+input{padding:8px;width:100%;margin-bottom:10px}
+
+/* ===== Saved Test List Layout ===== */
+.test-row{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:10px;
+}
+.test-info{
+ font-size:13px;
+ color:#334155;
+ white-space:nowrap;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">MCQ Practice – Real Exam Mode</div>
+<div class="header">MCQ Exam System PRO PLUS (FINAL)</div>
 
-<!-- START -->
 <div class="center" id="startScreen">
  <button class="btn-main" onclick="showSaved()">📂 Start / Manage Tests</button>
  <button class="btn-main" onclick="showAdd()">➕ Add JSON Files</button>
- <button class="btn-sec" onclick="downloadAll()">📥 Download All JSON</button>
+ <button class="btn-main" onclick="showPaste()">📋 Paste JSON</button>
+ <button class="btn-main" onclick="showText()">✍️ Paste MCQ (No JSON)</button>
+ <button class="btn-sec" onclick="downloadAllTests()">⬇ Download All Tests (ZIP)</button>
 </div>
 
-<!-- LIST -->
 <div class="center" id="listScreen" style="display:none">
  <h3>Saved Tests</h3>
  <div id="savedList"></div>
  <button onclick="backStart()">⬅ Back</button>
 </div>
 
-<!-- ADD -->
 <div class="center" id="addScreen" style="display:none">
- <h3>Upload Multiple JSON Files</h3>
+ <h3>Upload JSON Files</h3>
  <input type="file" accept=".json" multiple onchange="uploadMultiple(this)">
- <p>Each JSON file will be saved as a separate test.</p>
+ <br><br>
  <button onclick="backStart()">⬅ Back</button>
 </div>
 
-<!-- EXAM -->
+<div class="center" id="pasteScreen" style="display:none">
+ <h3>Paste JSON Here</h3>
+ <input id="pasteName" placeholder="Enter Test Name">
+ <textarea id="pasteBox" placeholder="Paste your JSON here"></textarea>
+ <br>
+ <button class="btn-main" onclick="savePasted()">💾 Save Test</button>
+ <button onclick="backStart()">⬅ Back</button>
+</div>
+
+<div class="center" id="textScreen" style="display:none">
+ <h3>Paste MCQ (No JSON)</h3>
+ <input id="textName" placeholder="Enter Test Name">
+ <textarea id="textBox" placeholder="Paste MCQ here..."></textarea>
+ <br>
+ <button class="btn-main" onclick="saveText()">💾 Save Test</button>
+ <button onclick="backStart()">⬅ Back</button>
+</div>
+
 <div class="center" id="examScreen" style="display:none">
  <button class="btn-sec" onclick="exitExam()">⬅ Exit Exam</button>
 
@@ -95,27 +162,34 @@ button{
  </div>
 </div>
 
-<!-- RESULT -->
 <div class="center" id="resultScreen" style="display:none;text-align:center">
  <h2>Test Completed</h2>
  <p id="scoreText"></p>
+ <button class="btn-main" onclick="showAnalysis()">📊 View Analysis</button>
  <button class="btn-main" onclick="reattempt()">🔁 Reattempt</button>
  <button onclick="exitExam()">📂 Test List</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<div class="center" id="analysisScreen" style="display:none">
+ <h2>Full Analysis</h2>
+ <div id="analysisBox"></div>
+ <br>
+ <button onclick="exitExam()">⬅ Back to Tests</button>
+</div>
 
 <script>
-let questions=[],originalQs=[],current=0,answers={},correct=0;
+/* ================= CORE CODE ================= */
 
-/* ---------- SHUFFLE ---------- */
+let questions=[],originalQs=[],current=0,answers={},correct=0;
+let currentTestName="";
+
 function shuffleOptions(q){
  const c=q.options[q.correctIndex];
  const s=[...q.options].sort(()=>Math.random()-0.5);
  return {text:q.text,options:s,correctIndex:s.indexOf(c)};
 }
 
-/* ---------- SMART PARSE ---------- */
+/* JSON PARSE */
 function smartParse(raw){
  raw=raw.replace(/'/g,'"');
  try{return extract(JSON.parse(raw),[]);}catch(e){return[];}
@@ -132,74 +206,159 @@ function extract(d,r=[]){
  return r;
 }
 
-/* ---------- UPLOAD MULTIPLE ---------- */
-function uploadMultiple(inp){
- const lib=JSON.parse(localStorage.getItem('mcq_lib')||'{}');
+/* TEXT PARSE */
+function parseText(txt){
+ txt=txt.replace(/\r/g,"");
+ let blocks=txt.split(/\n\s*\n/);
+ let res=[];
+ blocks.forEach(b=>{
+  let lines=b.split("\n").map(x=>x.trim()).filter(x=>x);
+  if(lines.length<4) return;
+  let q=lines[0];
+  let opts=[];
+  let ans=0;
+  lines.forEach(l=>{
+   if(/^[A-Da-d1-4][\).:-]/.test(l)){
+    opts.push(l.replace(/^[A-Da-d1-4][\).:-]/,"").trim());
+   }
+   if(/ans|answer|correct/i.test(l)){
+    let m=l.match(/[A-Da-d1-4]/);
+    if(m){
+     let ch=m[0].toUpperCase();
+     if(ch>="A"&&ch<="D") ans=ch.charCodeAt(0)-65;
+     else ans=parseInt(ch)-1;
+    }
+   }
+  });
+  if(opts.length>=2) res.push({text:q,options:opts,correctIndex:ans});
+ });
+ return res;
+}
 
+function getLib(){ return JSON.parse(localStorage.getItem('mcq_lib')||'{}'); }
+function saveLib(lib){ localStorage.setItem('mcq_lib',JSON.stringify(lib)); }
+
+/* ===== DOWNLOAD ALL AS ZIP ===== */
+function downloadAllTests(){
+ const lib = getLib();
+ const keys = Object.keys(lib);
+ if(keys.length === 0){
+   alert("No tests to download");
+   return;
+ }
+
+ const zip = new JSZip();
+ keys.forEach(name=>{
+   const data = JSON.stringify(lib[name], null, 2);
+   zip.file(name + ".json", data);
+ });
+
+ zip.generateAsync({type:"blob"}).then(function(content){
+   const a = document.createElement("a");
+   a.href = URL.createObjectURL(content);
+   a.download = "MCQ_All_Tests_Backup.zip";
+   a.click();
+ });
+}
+
+/* UPLOAD JSON */
+function uploadMultiple(inp){
+ const lib=getLib();
  [...inp.files].forEach(f=>{
   const r=new FileReader();
   r.onload=e=>{
    const qs=smartParse(e.target.result);
    if(qs.length){
-    const name=f.name.replace('.json','');
-    lib[name]=qs;
-    localStorage.setItem('mcq_lib',JSON.stringify(lib));
+    lib[f.name.replace('.json','')]={questions:qs,history:[]};
+    saveLib(lib);
    }
   };
   r.readAsText(f);
  });
-
- alert("JSON files uploaded successfully");
+ alert("Uploaded");
  backStart();
 }
 
-/* ---------- NAV ---------- */
+/* SAVE JSON */
+function savePasted(){
+ const name=pasteName.value.trim();
+ const raw=pasteBox.value.trim();
+ if(!name||!raw){alert("Fill both");return;}
+ const qs=smartParse(raw);
+ if(!qs.length){alert("Invalid JSON");return;}
+ const lib=getLib();
+ lib[name]={questions:qs,history:[]};
+ saveLib(lib);
+ alert("Saved");
+ backStart();
+}
+
+/* SAVE TEXT */
+function saveText(){
+ const name=textName.value.trim();
+ const raw=textBox.value.trim();
+ if(!name||!raw){alert("Fill both");return;}
+ const qs=parseText(raw);
+ if(!qs.length){alert("Could not detect MCQ");return;}
+ const lib=getLib();
+ lib[name]={questions:qs,history:[]};
+ saveLib(lib);
+ alert("Saved");
+ backStart();
+}
+
+/* NAV */
 function showSaved(){startScreen.style.display='none';listScreen.style.display='block';loadSaved();}
 function showAdd(){startScreen.style.display='none';addScreen.style.display='block';}
+function showPaste(){startScreen.style.display='none';pasteScreen.style.display='block';}
+function showText(){startScreen.style.display='none';textScreen.style.display='block';}
 function backStart(){
  startScreen.style.display='block';
  listScreen.style.display='none';
  addScreen.style.display='none';
+ pasteScreen.style.display='none';
+ textScreen.style.display='none';
  examScreen.style.display='none';
  resultScreen.style.display='none';
+ analysisScreen.style.display='none';
 }
 
-/* ---------- LOAD LIST ---------- */
+/* LIST */
 function loadSaved(){
+ const lib=getLib();
  savedList.innerHTML='';
- const lib=JSON.parse(localStorage.getItem('mcq_lib')||'{}');
-
- if(!Object.keys(lib).length){
-  savedList.innerHTML="<p>No tests saved</p>";
-  return;
- }
-
  Object.keys(lib).forEach(k=>{
+  const t=lib[k];
+  const h=t.history;
+  const last=h.length?h[h.length-1].score+"/"+h[h.length-1].total:"Not Attempted";
+  const best=h.length?Math.max(...h.map(x=>x.score))+"/"+h[0].total:"-";
+
   const d=document.createElement('div');
-  d.style.marginBottom="12px";
   d.innerHTML=`
-   <b>${k}</b><br>
+   <div class="test-row">
+     <b>${k}</b>
+     <div class="test-info">
+       Attempts: ${h.length} | Last: ${last} | Best: ${best}
+     </div>
+   </div>
    <button class="btn-main">▶ Start</button>
    <button class="btn-del">❌ Delete</button>
+   <hr>
   `;
-
-  d.querySelector('.btn-main').onclick=()=>startExam(lib[k]);
+  d.querySelector('.btn-main').onclick=()=>startExam(k);
   d.querySelector('.btn-del').onclick=()=>{
-   if(confirm("Delete this test?")){
-    delete lib[k];
-    localStorage.setItem('mcq_lib',JSON.stringify(lib));
-    loadSaved();
-   }
+   if(confirm("Delete?")){delete lib[k];saveLib(lib);loadSaved();}
   };
-
   savedList.appendChild(d);
  });
 }
 
-/* ---------- EXAM ---------- */
-function startExam(qs){
- originalQs=qs;
- questions=qs.map(q=>shuffleOptions(q));
+/* EXAM */
+function startExam(name){
+ const lib=getLib();
+ currentTestName=name;
+ originalQs=lib[name].questions;
+ questions=originalQs.map(q=>shuffleOptions(q));
  current=0;answers={};correct=0;
  palette.innerHTML='';
  questions.forEach((_,i)=>{
@@ -218,90 +377,83 @@ function render(){
  let h=`<div class="question">Q${current+1}. ${q.text}</div>`;
  q.options.forEach((o,i)=>{
   h+=`<div class="option" onclick="selectOption(${i})">
-        <input type="radio" name="opt" value="${i}"> ${o}
+        <label>
+          <input type="radio" name="opt">
+          <span>${o}</span>
+        </label>
       </div>`;
  });
  qBox.innerHTML=h;
-
- if(answers[current]!=null){
-  selectOption(answers[current]);
- }
+ if(answers[current]!=null) selectOption(answers[current]);
 }
 
-/* ---------- INSTANT RESULT ---------- */
 function selectOption(i){
  const opts=document.querySelectorAll('.option');
- const radios=document.querySelectorAll('input[name="opt"]');
- radios[i].checked=true;
-
  opts.forEach(o=>o.classList.remove('correct','wrong'));
-
  const ci=questions[current].correctIndex;
- if(i===ci){
-  opts[i].classList.add('correct');
- }else{
-  opts[i].classList.add('wrong');
-  opts[ci].classList.add('correct');
- }
+ if(i===ci) opts[i].classList.add('correct');
+ else{ opts[i].classList.add('wrong'); opts[ci].classList.add('correct'); }
+ document.querySelectorAll('input[name="opt"]')[i].checked=true;
 }
 
 function saveNext(){
- const s=document.querySelector('input[name="opt"]:checked');
- if(!s){alert("Option select karo");return;}
- const a=Number(s.value);
- answers[current]=a;
-
+ const s=[...document.querySelectorAll('input[name="opt"]')].findIndex(r=>r.checked);
+ if(s<0){alert("Select option");return;}
+ answers[current]=s;
  const p=palette.children[current];
- p.className=a===questions[current].correctIndex?'green':'red';
- if(a===questions[current].correctIndex)correct++;
-
+ p.className=s===questions[current].correctIndex?'green':'red';
+ if(s===questions[current].correctIndex) correct++;
  if(current<questions.length-1){current++;render();}
- else{
-  examScreen.style.display='none';
-  resultScreen.style.display='block';
-  scoreText.innerText=`Score: ${correct}/${questions.length}`;
- }
+ else finishTest();
+}
+
+function finishTest(){
+ examScreen.style.display='none';
+ resultScreen.style.display='block';
+ scoreText.innerText = `Score: ${correct}/${questions.length}`;
+
+ const lib = getLib();
+ if(!lib[currentTestName].history) lib[currentTestName].history = [];
+ lib[currentTestName].history.push({
+   score: correct,
+   total: questions.length,
+   date: new Date().toLocaleString(),
+   answers: answers,
+   questions: questions
+ });
+ saveLib(lib);
 }
 
 function prevQ(){if(current>0){current--;render();}}
 function jumpTo(i){current=i;render();}
-
-function reattempt(){
- questions=originalQs.map(q=>shuffleOptions(q));
- current=0;answers={};correct=0;
- resultScreen.style.display='none';
- examScreen.style.display='block';
- palette.innerHTML='';
- questions.forEach((_,i)=>{
-  const p=document.createElement('div');
-  p.innerText=i+1;p.className='grey';
-  p.onclick=()=>jumpTo(i);
-  palette.appendChild(p);
- });
- render();
-}
+function reattempt(){ startExam(currentTestName); }
 
 function exitExam(){
  examScreen.style.display='none';
  resultScreen.style.display='none';
+ analysisScreen.style.display='none';
  listScreen.style.display='block';
  loadSaved();
 }
 
-/* ---------- DOWNLOAD ---------- */
-function downloadAll(){
- const lib=JSON.parse(localStorage.getItem('mcq_lib')||'{}');
- if(!Object.keys(lib).length){alert("No JSON saved");return;}
- const zip=new JSZip(),f=zip.folder("MCQ_JSON");
- Object.keys(lib).forEach(k=>{
-  f.file(k+".json",JSON.stringify(lib[k],null,2));
+function showAnalysis(){
+ const lib=getLib();
+ const h=lib[currentTestName].history.at(-1);
+ let out="";
+ h.questions.forEach((q,i)=>{
+  const a=h.answers[i];
+  const c=q.correctIndex;
+  if(a!==c){
+   out+=`<div style="border:1px solid #ccc;padding:10px;margin:10px">
+    <b>Q${i+1}. ${q.text}</b><br>
+    ❌ Your: ${q.options[a]}<br>
+    ✅ Correct: ${q.options[c]}
+   </div>`;
+  }
  });
- zip.generateAsync({type:'blob'}).then(b=>{
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(b);
-  a.download="MCQ_JSON.zip";
-  a.click();
- });
+ analysisBox.innerHTML=out||"<b>All correct 🎉</b>";
+ resultScreen.style.display='none';
+ analysisScreen.style.display='block';
 }
 </script>
 
